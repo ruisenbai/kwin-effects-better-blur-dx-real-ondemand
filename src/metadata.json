@@ -1,0 +1,27 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "KWin development team"
+            },
+            {
+                "Name": "taj_ny"
+            },
+            {
+                "Name": "DaddelZeit"
+            },
+            {
+                "Name": "iGerman00"
+            },
+            {
+                "Name": "Xarblu"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "真实背景强磨砂：切换、移动和缩放时更新，静止后冻结；默认强度 12，保留排除名单。",
+        "EnabledByDefault": false,
+        "License": "GPL",
+        "Name": "Better Blur DX — 真实背景按需"
+    },
+    "X-KDE-ConfigModule": "kwin_better_blur_dx_real_ondemand_config"
+}

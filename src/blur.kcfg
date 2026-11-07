@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+    http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+    <kcfgfile arg="true"/>
+    <group name="Effect-better-blur-dx-real-ondemand">
+        <!-- General -->
+        <entry name="BlurStrength" type="Int">
+            <default>12</default>
+        </entry>
+        <entry name="NoiseStrength" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="Brightness" type="Int">
+            <default>100</default>
+        </entry>
+        <entry name="Saturation" type="Int">
+            <default>100</default>
+        </entry>
+        <entry name="Contrast" type="Int">
+            <default>100</default>
+        </entry>
+        <entry name="ForceContrastParams" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="CornerRadius" type="Double">
+            <default>11</default>
+        </entry>
+        <!-- Force Blur -->
+        <entry name="WindowClasses" type="String">
+            <default>kscreenlocker_greet
+org.kde.kscreenlocker
+ksmserver-logout-greeter
+org.kde.logoutgreeter
+xwaylandvideobridge
+org.kde.xwaylandvideobridge
+fcitx
+fcitx5
+org.fcitx.Fcitx5
+org.fcitx.fcitx5
+fcitx5-wayland-launcher
+fcitx5-configtool
+org.fcitx.fcitx5-qt6-gui-wrapper
+org.fcitx.fcitx5-qt5-gui-wrapper
+org.fcitx.fcitx5-config-qt
+org.fcitx.fcitx5-migrator
+kwin_wayland
+wechat
+WeChat
+com.tencent.WeChat
+com.tencent.wechat
+com.tencent.wechatappex
+clawd-on-desk
+plasmashell
+org.kde.plasmashell</default>
+        </entry>
+        <entry name="BlurMatching" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="BlurNonMatching" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="BlurDecorations" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="BlurMenus" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="BlurDocks" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- Refraction -->
+        <entry name="RefractionStrength" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="RefractionMode" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="RefractionEdgeSize" type="Int">
+            <default>20</default>
+        </entry>
+        <entry name="RefractionNormalPow" type="Int">
+            <default>2</default>
+        </entry>
+        <entry name="RefractionCornerRadius" type="Int">
+            <default>8</default>
+        </entry>
+        <entry name="RefractionRGBFringing" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="RefractionTextureRepeatMode" type="Int">
+            <default>0</default>
+        </entry>
+        <!-- Performance -->
+        <entry name="BlitMode" type="Enum">
+            <choices name="BBDXReal::BlitMode">
+                <choice name="RENDER_TARGET"/>
+                <choice name="WALLPAPER"/>
+            </choices>
+            <default>BlitMode::RENDER_TARGET</default>
+        </entry>
+        <!-- 只在窗口操作时刷新磨砂，静止时保留已有画面。 -->
+        <entry name="BlurOnDemand" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="BlurCacheIgnore" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="BlurCacheRateLimit" type="Int">
+            <default>33</default>
+        </entry>
+    </group>
+</kcfg>
