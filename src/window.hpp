@@ -58,6 +58,12 @@ private:
     // be force blurred - re-evaluated with BBDXReal::Window::reconfigure()
     bool m_shouldForceBlur{false};
 
+    // 微信和 ChatGPT 只允许已识别的主窗口；未知辅助窗口默认排除。
+    enum class MainWindowPolicy { Unrestricted, Main, Excluded };
+    MainWindowPolicy m_mainWindowPolicy{MainWindowPolicy::Unrestricted};
+    MainWindowPolicy mainWindowPolicy() const;
+    void refreshMainWindowPolicy();
+
     // user config related attributes
     bool m_blurMenus{false};
     bool m_blurDocks{false};

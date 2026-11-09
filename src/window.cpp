@@ -38,6 +38,16 @@ BBDXReal::Window::Window(BBDXReal::WindowManager *wm, KWin::EffectWindow *w) {
     connect(w, &KWin::EffectWindow::windowStartUserMovedResized, this, &BBDXReal::Window::slotWindowStartUserMovedResized);
     connect(w, &KWin::EffectWindow::windowFinishUserMovedResized, this, &BBDXReal::Window::slotWindowFinishUserMovedResized);
     connect(w, &KWin::EffectWindow::windowOpacityChanged, this, &BBDXReal::Window::slotWindowOpacityChanged);
+
+    // 截图工具可能复用窗口并改变标题/状态，不能只在创建时决定是否磨砂。
+    auto client = w->window();
+    const auto refreshPolicy = [this]() { refreshMainWindowPolicy(); };
+    connect(client, &KWin::Window::windowClassChanged, this, refreshPolicy);
+    connect(client, &KWin::Window::captionNormalChanged, this, refreshPolicy);
+    connect(client, &KWin::Window::transientChanged, this, refreshPolicy);
+    connect(client, &KWin::Window::skipTaskbarChanged, this, refreshPolicy);
+    connect(client, &KWin::Window::skipSwitcherChanged, this, refreshPolicy);
+    connect(client, &KWin::Window::fullScreenChanged, this, refreshPolicy);
 }
 
 void BBDXReal::Window::slotMinimizedChanged() {
@@ -307,7 +317,56 @@ QString BBDXReal::Window::maximizedStateToString() const {
     return s;
 }
 
+BBDXReal::Window::MainWindowPolicy BBDXReal::Window::mainWindowPolicy() const {
+    const auto client = effectwindow()->window();
+    const auto app = client->resourceClass().toLower();
+    const auto name = client->resourceName().toLower();
+    const auto isWeChat = [](const QString &id) {
+        return id == QLatin1String("wechat") || id == QLatin1String("com.tencent.wechat");
+    };
+    const auto isChatGPT = [](const QString &id) {
+        return id == QLatin1String("chatgpt") || id == QLatin1String("com.openai.chatgpt")
+            || id == QLatin1String("com.openai.chat");
+    };
+    // 微信辅助进程不应通过主窗口判定。
+    if (app == QLatin1String("com.tencent.wechatappex") || name == QLatin1String("com.tencent.wechatappex")) {
+        return MainWindowPolicy::Excluded;
+    }
+    const bool wechat = isWeChat(app) || isWeChat(name);
+    const bool chatgpt = isChatGPT(app) || isChatGPT(name);
+    if (!wechat && !chatgpt) {
+        return MainWindowPolicy::Unrestricted;
+    }
+
+    // 实测微信截图也使用 Normal 类型，滚动截图还会取消全屏，故必须正向识别主窗口。
+    if (!effectwindow()->isNormalWindow() || effectwindow()->isPopupWindow()
+        || client->isUnmanaged() || client->isTransient() || client->skipTaskbar()
+        || client->skipSwitcher() || client->isFullScreen()) {
+        return MainWindowPolicy::Excluded;
+    }
+    // captionNormal 不含 KWin 为同名窗口添加的序号；未知标题保守排除。
+    const auto title = client->captionNormal().trimmed();
+    const bool mainTitle = wechat
+        ? title == QStringLiteral("微信") || title.compare(QLatin1String("WeChat"), Qt::CaseInsensitive) == 0
+        : title.compare(QLatin1String("ChatGPT"), Qt::CaseInsensitive) == 0
+            || title.compare(QLatin1String("Codex"), Qt::CaseInsensitive) == 0;
+    return mainTitle ? MainWindowPolicy::Main : MainWindowPolicy::Excluded;
+}
+
+void BBDXReal::Window::refreshMainWindowPolicy() {
+    if (mainWindowPolicy() == m_mainWindowPolicy) {
+        return;
+    }
+    reconfigure();
+    // 即使原来只有应用主动请求的模糊，也要删除缓存及其背景依赖。
+    triggerBlurRegionUpdate();
+    effectwindow()->addRepaintFull();
+}
+
 bool BBDXReal::Window::neverForceBlur() const {
+    if (m_mainWindowPolicy == MainWindowPolicy::Excluded)
+        return true;
+
     if (effectwindow()->isDesktop())
         return true;
 
@@ -353,6 +412,7 @@ bool BBDXReal::Window::shouldForceBlur() const {
 }
 
 void BBDXReal::Window::reconfigure() {
+    m_mainWindowPolicy = mainWindowPolicy();
     // must be set before shouldForceBlur()
     m_blurMenus = m_windowManager->blurMenus();
     m_blurDocks = m_windowManager->blurDocks();
@@ -369,6 +429,14 @@ void BBDXReal::Window::reconfigure() {
 }
 
 void BBDXReal::Window::getFinalBlurRegion(std::optional<KWin::RegionF> &content, std::optional<KWin::RegionF> &frame) {
+    // 辅助窗口同时禁用强制模糊和原生请求，避免截图遮罩留下整屏模糊缓存。
+    if (m_mainWindowPolicy == MainWindowPolicy::Excluded) {
+        content.reset();
+        frame.reset();
+        m_blurOriginMask = 0;
+        return;
+    }
+
     const auto oldBlurOriginMask = m_blurOriginMask;
 
     // If we already have a blur region at this point

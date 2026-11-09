@@ -46,10 +46,6 @@ org.fcitx.fcitx5-qt5-gui-wrapper
 org.fcitx.fcitx5-config-qt
 org.fcitx.fcitx5-migrator
 kwin_wayland
-wechat
-WeChat
-com.tencent.WeChat
-com.tencent.wechat
 com.tencent.wechatappex
 clawd-on-desk
 plasmashell
